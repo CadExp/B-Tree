@@ -21,7 +21,7 @@ static void btree(void)
         strcpy(c.title, line);
         printf("%d -> %s\n", count, line);
         count++;
-        btree_add(btree, &c);
+        // btree_add(btree, &c);
     }
     printf("\n--------------\n");
     // FILE *resultFile = fopen("my_result.txt", "w");
