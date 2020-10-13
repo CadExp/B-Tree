@@ -19,7 +19,7 @@ static void btree(void)
         Column c;
         c.id = 1;
         strcpy(c.title, line);
-        printf("%d,%d -> %s\n", count, strlen(line), line);
+        // printf("%d,%d -> %s\n", count, strlen(line), line);
         count++;
         btree_add(btree, &c);
     }
