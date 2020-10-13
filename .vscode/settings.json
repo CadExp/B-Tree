@@ -1,0 +1,12 @@
+{
+  "files.associations": {
+    "cmath": "c",
+    "cstdlib": "c",
+    "array": "c",
+    "*.tcc": "c",
+    "utility": "c",
+    "cstdio": "c",
+    "unordered_map": "c",
+    "streambuf": "c"
+  }
+}
