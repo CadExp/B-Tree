@@ -5,7 +5,7 @@
 
 static void btree(void)
 {
-    freopen("Bplus_Tree2.log", "w", stdout);
+    // freopen("Bplus_Tree2.log", "w", stdout);
     BTree *btree = btree_init(4);
     FILE *f = fopen("0_string.txt", "r");
     char line[128];
@@ -19,7 +19,7 @@ static void btree(void)
         Column c;
         c.id = 1;
         strcpy(c.title, line);
-        // printf("%d,%d -> %s\n", count, strlen(line), line);
+        printf("%d -> %s\n", count, line);
         count++;
         btree_add(btree, &c);
     }
