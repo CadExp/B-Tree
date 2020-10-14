@@ -6,8 +6,8 @@
 static void btree(void)
 {
     // freopen("Bplus_Tree2.log", "w", stdout);
-    BTree *btree = btree_init(4);
-    FILE *f = fopen("0_string.txt", "r");
+    BTree *btree = btree_init(2);
+    FILE *f = fopen("string.txt", "r");
     char line[128];
     int count=0;
     while (fgets(line, 128, f) != NULL)
@@ -17,11 +17,14 @@ static void btree(void)
             *find = '\0';
         if(strlen(line)==0)continue;
         Column c;
-        c.id = 1;
+        c.id = rand()%100;
         strcpy(c.title, line);
-        printf("%d -> %s\n", count, line);
+        printf("---开始保存%d---\n", c.id);
+        btree_add(btree, &c);
+        printf("--- %d,%d -> %s\n", c.id, btree->size, line);
+        btree_traverse(btree, print_node);
+        printf("---保存完毕---\n\n");
         count++;
-        // btree_add(btree, &c);
     }
     printf("\n--------------\n");
     // FILE *resultFile = fopen("my_result.txt", "w");
@@ -44,7 +47,7 @@ static void btree(void)
     // }
     // printf("hits%d\n", hit);
     printf("\n------------------\n");
-    btree_traverse(btree, print_node);
+    // btree_traverse(btree, print_node);
     printf("\n------------------\n");
     printf("btree_clear\n");
     btree_clear(btree);

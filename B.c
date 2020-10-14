@@ -8,36 +8,63 @@
 //0不等 1相等
 static int column_is_equal(const Column *a, const Column *b)
 {
-  if (a == NULL)
-    return 0;
-  if (b == NULL)
-    return 0;
-  if (strcmp(a->title, b->title) == 0)
-    return 1;
-  return 0;
+  // if (strcmp(a->title, b->title) == 0)
+  //   return 1;
+  // return 0;
+  //TODO
+  return a->id == b->id;
 }
 //a>b则1，否则0
 static int column_a_greater_than_b(const Column *a, const Column *b)
 {
-  if (a == NULL)
-    return 0;
-  if (b == NULL)
-    return 0;
-  if (strcmp(a->title, b->title) > 0)
-    return 1;
-  return 0;
+  // if (strcmp(a->title, b->title) > 0)
+  //   return 1;
+  // return 0;
+  //TODO
+  return a->id > b->id;
 }
 //a>=b则1，否则0
 static int column_a_greater_or_equal_b(const Column *a, const Column *b)
 {
-  if (a == NULL)
-    return 0;
-  if (b == NULL)
-    return 0;
-  int r = strcmp(a->title, b->title);
-  if (r > 0 || r == 0)
-    return 1;
-  return 0;
+  // int r = strcmp(a->title, b->title);
+  // if (r >= 0)
+  //   return 1;
+  // return 0;
+  //TODO
+  return a->id >= b->id;
+}
+
+void print_node_data(BNode *node)
+{
+  if (node == NULL)
+  {
+    printf("null");
+    return;
+  }
+  printf("[");
+  // int i;
+  // for (i = 0; i < node->size - 1; i++)
+  // {
+  //   printf("%s, ", node->columns[i]->title);
+  // }
+  // printf("%s]", node->columns[node->size - 1]->title);
+  //TODO
+  int i;
+  for (i = 0; i < node->size - 1; i++)
+  {
+    printf("%d, ", node->columns[i]->id);
+  }
+  printf("%d]", node->columns[node->size - 1]->id);
+}
+void print_node(BNode *node)
+{
+  print_node_data(node);
+  printf(", size: %d", node->size);
+  printf(", parent:");
+  print_node_data(node->parent);
+  printf(", next:");
+  print_node_data(node->next);
+  printf("\n");
 }
 
 // 顺序查找结点关键字
@@ -127,7 +154,17 @@ static BNode *new_node(BTree *btree)
   return node;
 }
 
-//将数据 column 存储为 node 的第 index 个关键字
+//当前结点是满的
+static int node_is_full(BTree *btree, BNode *node)
+{
+  if (node == NULL)
+    return 0;
+  if (node->size == 2 * btree->degree - 1)
+    return 1;
+  return 0;
+}
+
+// 将数据 column 复制一份，存储为 node 的第 index 个关键字
 // index 从 0 开始
 static int replace_data_at_node(BNode *node, int index, Column *column)
 {
@@ -144,36 +181,12 @@ static int replace_data_at_node(BNode *node, int index, Column *column)
 // index 从 0 开始
 static int save_data_to_node(BNode *node, int index, Column *column)
 {
+  printf("保存到 %d 到 index:%d\n", column->id, index);
   replace_data_at_node(node, index, column);
   node->size++;
   return 1;
 }
 
-void print_node_data(BNode *node)
-{
-  if (node == NULL)
-  {
-    printf("null");
-    return;
-  }
-  printf("[");
-  int i;
-  for (i = 0; i < node->size - 1; i++)
-  {
-    printf("%s, ", node->columns[i]->title);
-  }
-  printf("%s]", node->columns[node->size - 1]->title);
-}
-void print_node(BNode *node)
-{
-  print_node_data(node);
-  printf(", size: %d", node->size);
-  printf(", parent:");
-  print_node_data(node->parent);
-  printf(", next:");
-  print_node_data(node->next);
-  printf("\n");
-}
 // 最大值
 static Column *node_max(BNode *root)
 {
@@ -290,36 +303,36 @@ void btree_traverse(BTree *btree, void (*traverse)(BNode *))
 //[2,3]
 //|--[1,2]
 //|--[3]
-static BNode *split_full_node(BTree *btree, BNode *root, int index)
+static BNode *split_full_node(BTree *btree, BNode *root, int will_in_left)
 {
   int i, j, k;
-  // printf("结点 ");
-  // print_node_data(root);
+  printf("结点 ");
+  print_node_data(root);
   if (root->parent != NULL)
   {
     //结点有父节点
-    // printf(" 有父结点: ");
+    printf(" 有父结点: ");
     BNode *parent = root->parent;
-    // print_node_data(parent);
-    // printf("\n");
+    print_node_data(parent);
+    printf("\n");
     BNode *left = root;
     BNode *that_parent = parent;
     if (parent->size == 2 * btree->degree - 1)
     {
       //父结点也满了，需要递归分裂
-      // printf("  父结点也满了，需要递归分裂\n");
-      // printf("  ---递归中---\n");
-      parent = split_full_node(btree, parent, index);
-      // printf("  left:\n");
-      // print_node(left);
-      // printf("  left parent:\n");
-      // print_node(left->parent);
-      // printf("  split_parent:\n");
-      // print_node(parent);
+      printf("  父结点也满了，需要递归分裂\n");
+      printf("  ---递归中---\n");
+      parent = split_full_node(btree, parent, will_in_left);
+      printf("  left:\n");
+      print_node(left);
+      printf("  left parent:\n");
+      print_node(left->parent);
+      printf("  split_parent:\n");
+      print_node(parent);
       that_parent = parent;
-      // printf("  that_parent:\n");
-      // print_node(that_parent);
-      // printf("  ---递归完成---\n");
+      printf("  that_parent:\n");
+      print_node(that_parent);
+      printf("  ---递归完成---\n");
       if (parent == NULL)
       {
         printf("  分裂失败\n");
@@ -329,28 +342,36 @@ static BNode *split_full_node(BTree *btree, BNode *root, int index)
     else
     {
       //父结点有空闲
-      // printf("  父结点有空闲\n");
+      printf("  父结点有空闲\n");
       that_parent = parent;
     }
-    // printf("  创建一个兄弟结点\n");
+    printf("  创建一个兄弟结点\n");
     BNode *right = new_node(btree);
     if (!right)
       return 0;
-    int split_index = btree->degree;
+    int split_index = btree->degree - will_in_left;
+    int right_index;
     for (i = split_index; i < left->size; i++)
     {
-      right->columns[i - split_index] = left->columns[i];
-      right->children[i - split_index] = left->children[i];
+      right_index = i - split_index; //左结点的第i棵子树复制为右结点的第right_index棵子树
+      right->columns[right_index] = left->columns[i];
+      right->children[right_index] = left->children[i];
+      if (right->children[right_index] != NULL)
+      {
+        right->children[right_index]->parent = right;
+      }
     }
     right->leaf = left->leaf;
     left->size = split_index;
-    right->size = split_index - 1;
-    // printf("  分裂为两个子树，左子树 ");
-    // print_node_data(left);
-    // printf("，右子树 ");
-    // print_node_data(right);
-    // printf("\n");
+    right->size = split_index - 1 + 2 * will_in_left;
+    printf("  分裂为两个子树，左子树 ");
+    print_node_data(left);
+    printf("，右子树 ");
+    print_node_data(right);
+    printf("\n");
+    right->next = left->next;
     left->next = right;
+    btree->size++;
     //that_parent一定非满
     Column *left_max_id = node_max(left);
     for (i = 0; i < that_parent->size; i++)
@@ -382,15 +403,16 @@ static BNode *split_full_node(BTree *btree, BNode *root, int index)
   else
   {
     //结点没父节点
-    // printf(" 没父节点\n");
+    printf(" 没父节点\n");
     //1.创建一个父结点
     //2.创建一个兄弟结点，根据index看这个兄弟结点是作为左子树还是右子树
-    // printf("  创建一个兄弟结点\n");
+    printf("  创建一个兄弟结点\n");
     BNode *right = new_node(btree);
     if (!right)
       return 0;
     BNode *left = root;
-    int split_index = btree->degree;
+    int split_index = btree->degree - will_in_left;
+    printf("  will_in_left=%d, split_index=%d\n", will_in_left, split_index);
     int right_index;
     for (i = split_index; i < left->size; i++)
     {
@@ -404,21 +426,22 @@ static BNode *split_full_node(BTree *btree, BNode *root, int index)
     }
     right->leaf = left->leaf;
     left->size = split_index;
-    right->size = split_index - 1;
+    right->size = split_index - 1 + will_in_left * 2;
 
-    // printf("  创建一个父结点\n");
+    printf("  创建一个父结点\n");
     BNode *parent = new_node(btree);
     if (!parent)
       return 0;
     parent->size = 2;
     parent->children[0] = left;
     parent->children[1] = right;
-    parent->columns[0] = left->columns[split_index - 1];
-    parent->columns[1] = right->columns[split_index - 2];
+    parent->columns[0] = node_max(left);
+    parent->columns[1] = node_max(right);
     parent->leaf = 0;
 
     left->parent = parent;
     right->parent = parent;
+    right->next = left->next;
     left->next = right;
 
     btree->root = parent;
@@ -431,9 +454,9 @@ static BNode *split_full_node(BTree *btree, BNode *root, int index)
 //替换中间结点的最大值 last_column 为 column
 static int replace_max_of_intrenal_node(BTree *btree, BNode *root, Column *last_column, Column *column)
 {
-  // printf("替换中间结点 ");
-  // print_node_data(root);
-  // printf(" 的最大值 %d 为 %d\n", last_column->id, column->id);
+  printf("替换中间结点 ");
+  print_node_data(root);
+  printf(" 的最大值 %d 为 %d\n", last_column->id, column->id);
   int i;
   if (root->leaf)
   {
@@ -447,12 +470,355 @@ static int replace_max_of_intrenal_node(BTree *btree, BNode *root, Column *last_
       {
         // replace_data_at_node(root, i, column);
         root->columns[i] = column;
-        if (root->parent != NULL)
+        if (i==root->size-1 &&  root->parent != NULL)
         {
           replace_max_of_intrenal_node(btree, root->parent, last_column, column);
         }
         break;
       }
+    }
+    return 1;
+  }
+}
+
+//left是满的，因需要添加column而需要分裂
+//此函数将生成right树，根据index把column放在左子树或右子树
+//这里处理了next, leaf, columns, children
+//没有处理 column 对应的子树
+static BNode *generateRight(BTree *btree, BNode *left, Column *column, int index)
+{
+  BNode *right = new_node(btree);
+  if (!right)
+    return NULL;
+  right->next = left->next;
+  left->next = right;
+  right->leaf = left->leaf;
+  //index 决定了column在分裂后是位于左子树还是右子树
+  int i, right_index;
+  int middle_index = btree->degree;
+  if (index >= middle_index)
+  {
+    //column将位于右子树
+    //1. 复制出右子树
+    for (i = middle_index; i < left->size; i++)
+    {
+      //左子树复制到右子树：左结点的第i棵子树复制为右结点的第right_index棵子树
+      right_index = i - middle_index;
+      right->columns[right_index] = left->columns[i];
+      if (right->children[right_index] != NULL)
+      {
+        right->children[right_index]->parent = right;
+      }
+    }
+    right->size = btree->degree - 1;
+    left->size = btree->degree;
+    //2. 插入column
+    right_index = index - middle_index; //column在右子树中的位置
+    for (i = right->size; i > right_index; --i)
+    {
+      left->columns[i] = left->columns[i - 1];
+    }
+    save_data_to_node(right, right_index, column);
+  }
+  else
+  {
+    //column将位于左子树
+    //1. 复制出右子树
+    for (i = middle_index - 1; i < left->size; i++)
+    {
+      //左子树复制到右子树：左结点的第i棵子树复制为右结点的第right_index棵子树
+      right_index = i - middle_index + 1;
+      right->columns[right_index] = left->columns[i];
+      if (right->children[right_index] != NULL)
+      {
+        right->children[right_index]->parent = right;
+      }
+    }
+    right->size = btree->degree;
+    left->size = btree->degree - 1;
+    //2. 插入column
+    //column在左子树中的位置就是index
+    for (i = left->size; i > index; --i)
+    {
+      left->columns[i] = left->columns[i - 1];
+    }
+    save_data_to_node(left, index, column);
+  }
+  return right;
+}
+
+//root是根结点且是满的，添加 left_subtree_of_root 和 right_subtree_of_root 到 root。这将导致 root 分裂。
+//left_subtree_of_root->parent == root，root的某棵子树就是 left_subtree_of_root，但没有root没有left_subtree_of_root的最大值
+//right_subtree_of_root->parent == NULL, right_subtree_of_root的最大值在root中，但root没有子树指向 right_subtree_of_root
+static int split_root_and_add_subtree(BTree *btree, BNode *root, BNode *left_subtree_of_root, BNode *right_subtree_of_root)
+{
+  int i;
+  Column *right_max_value = node_max(right_subtree_of_root);
+  Column *left_max_value = node_max(left_subtree_of_root);
+  int right_index_in_root = binary_search(root->columns, root->size, right_max_value);
+
+  BNode *left = root;
+  BNode *right = generateRight(btree, left, left_max_value, right_index_in_root);
+  if (right == NULL)
+    return 0;
+  //generateRight没有处理left_subtree_of_root的子树，下面处理一下
+  int middle_index = btree->degree;
+  if (right_index_in_root >= middle_index)
+  {
+    //column的子树将位于右子树
+    right->children[right_index_in_root - middle_index] = left_subtree_of_root;
+    left_subtree_of_root->parent = right;
+    //由于 right_subtree_of_root 在 left_subtree_of_root 的右边，所以 right_subtree_of_root 也一定在右子树
+    //且 left_subtree_of_root 的右边就是 right_subtree_of_root
+    right->children[right_index_in_root - middle_index + 1] = right_subtree_of_root;
+    right_subtree_of_root->parent = right;
+  }
+  else
+  {
+    //column的子树将位于左子树
+    left->children[right_index_in_root] = left_subtree_of_root;
+    left_subtree_of_root->parent = left;
+    //由于 left_subtree_of_root 的右边就是 right_subtree_of_root
+    //判断 right_index_in_root 是否超过 left->size-1 就可以知道 right_subtree_of_root 在 left 还是 right 的 0 号位
+    if (right_index_in_root >= left->size - 1)
+    {
+      //right_subtree_of_root 将位于右子树
+      right->children[0] = right_subtree_of_root;
+      right_subtree_of_root->parent = right;
+    }
+    else
+    {
+      //right_subtree_of_root 将位于左子树
+      left->children[right_index_in_root + 1] = right_subtree_of_root;
+      right_subtree_of_root->parent = left;
+    }
+  }
+
+  BNode *parent = new_node(btree);
+  if (!parent)
+    return 0;
+  parent->size = 2;
+  parent->children[0] = left;
+  parent->children[1] = right;
+  parent->columns[0] = node_max(left);
+  parent->columns[1] = node_max(right);
+  parent->leaf = 0;
+  parent->size = 2;
+  btree->root = parent;
+
+  left->parent = parent;
+  right->parent = parent;
+  return 1;
+}
+//将 left 和 right 添加到 root，需要分裂 root
+//（外部调用时保证）当前结点是满的
+//（外部调用时保证）当前节点是中间节点，一定不是叶子节点
+//（外部调用时保证）root->leaf == 0 && root->size == 2 * btree->degree - 1
+//当前结点可能是根结点，也可能是有父结点的中间结点
+static int split_middle_or_root_and_add_subtree(BTree *btree, BNode *root, BNode *left_subtree_of_root, BNode *right_subtree_of_root)
+{
+  //由于 right_subtree_of_root 是由 left_subtree_of_root 分裂而来，left_subtree_of_root 没分裂前是 root 的子树
+  //所以 root 里一定有 right_subtree_of_root 的 max 数据和指向 left_subtree_of_root 的指针
+  //0. 先分割当前结点
+  //root是根结点且是满的，添加 left_subtree_of_root 和 right_subtree_of_root 到 root。这将导致 root 分裂。
+  //left_subtree_of_root->parent == root，root的某棵子树就是 left_subtree_of_root，但没有root没有left_subtree_of_root的最大值
+  //right_subtree_of_root->parent == NULL, right_subtree_of_root的最大值在root中，但root没有子树指向 right_subtree_of_root
+  int i;
+  Column *right_max_value = node_max(right_subtree_of_root);
+  Column *left_max_value = node_max(left_subtree_of_root);
+  int right_index_in_root = binary_search(root->columns, root->size, right_max_value);
+
+  BNode *left = root;
+  BNode *right = generateRight(btree, left, left_max_value, right_index_in_root);
+  if (right == NULL)
+    return 0;
+  //generateRight没有处理left_subtree_of_root的子树，下面处理一下
+  int middle_index = btree->degree;
+  if (right_index_in_root >= middle_index)
+  {
+    //column的子树将位于右子树
+    right->children[right_index_in_root - middle_index] = left_subtree_of_root;
+    left_subtree_of_root->parent = right;
+    //由于 right_subtree_of_root 在 left_subtree_of_root 的右边，所以 right_subtree_of_root 也一定在右子树
+    //且 left_subtree_of_root 的右边就是 right_subtree_of_root
+    right->children[right_index_in_root - middle_index + 1] = right_subtree_of_root;
+    right_subtree_of_root->parent = right;
+  }
+  else
+  {
+    //column的子树将位于左子树
+    left->children[right_index_in_root] = left_subtree_of_root;
+    left_subtree_of_root->parent = left;
+    //由于 left_subtree_of_root 的右边就是 right_subtree_of_root
+    //判断 right_index_in_root 是否超过 left->size-1 就可以知道 right_subtree_of_root 在 left 还是 right 的 0 号位
+    if (right_index_in_root >= left->size - 1)
+    {
+      //right_subtree_of_root 将位于右子树
+      right->children[0] = right_subtree_of_root;
+      right_subtree_of_root->parent = right;
+    }
+    else
+    {
+      //right_subtree_of_root 将位于左子树
+      left->children[right_index_in_root + 1] = right_subtree_of_root;
+      right_subtree_of_root->parent = left;
+    }
+  }
+
+  if (root->parent == NULL)
+  {
+    //1. 当前结点是根结点
+    BNode *parent = new_node(btree);
+    if (!parent)
+      return 0;
+    parent->size = 2;
+    parent->children[0] = left;
+    parent->children[1] = right;
+    parent->columns[0] = node_max(left);
+    parent->columns[1] = node_max(right);
+    parent->leaf = 0;
+    parent->size = 2;
+    btree->root = parent;
+
+    left->parent = parent;
+    right->parent = parent;
+    btree->size+=2;
+    return 1;
+  }
+  else if (node_is_full(btree, root->parent))
+  {
+    //2. 当前结点不是根结点，但父结点是满结点
+    return split_middle_or_root_and_add_subtree(btree, root->parent, left, right);
+  }
+  else
+  {
+    //3. 当前结点不是根结点，且父结点不是满结点
+    BNode *parent = root->parent;
+    int right_index_in_parent = binary_search(parent->columns, parent->size, node_max(right));
+    for (i=parent->size; i>right_index_in_parent; i--){
+      parent->columns[i] = parent->columns[i-1];
+      parent->children[i] = parent->children[i-1];
+    }
+    parent->columns[right_index_in_parent] = node_max(left);
+    parent->children[right_index_in_parent+1] = right;
+    right->parent = parent;
+    btree->size++;
+    return 1;
+  }
+}
+//将column添加为root的第index个数据
+//（外部调用时保证）当前结点是满的叶子且必有父结点（无父结点的叶子结点视为根结点的情况，不在这里处理）
+//（外部调用时保证）root->leaf == 1 && root->parent != NULL && root->size == 2 * btree->degree - 1
+//添加完后，提交新结点到父结点
+static int split_leaf_and_add_node_to_index(BTree *btree, BNode *root, Column *column, int index)
+{
+  //将column插入到当前结点，会因为分裂而产生两个子树：左子树和右子树
+  //因为外部调用保证了root是叶子结点
+  //所以这里不处理root的子树在left到right的转移，只处理数据在left到right的转移
+  //1. 先创建一个右子树，当前节点为左子树
+  BNode *left = root;
+  BNode *right = generateRight(btree, left, column, index);
+  if (!right)
+    return 0;
+  //2.将生成的两棵子树提交给父结点
+  //外部调用保证了当前结点必有父结点
+  //2.1 父结点也满，递归分裂
+  //父结点可能是根结点，也可能是有父结点的中间结点
+  BNode *parent = left->parent;
+  if (node_is_full(btree, parent))
+    return split_middle_or_root_and_add_subtree(btree, parent, left, right);
+  //2.2 父结点没满，直接提交结点到父结点并修改连接
+  right->parent = parent;
+  int right_index_in_parent = binary_search(parent->columns, parent->size, node_max(right)); //右子树在parent中的位置
+  int i;
+  for (i = parent->size; i > right_index_in_parent; --i)
+  {
+    parent->columns[i] = parent->columns[i - 1];
+    parent->children[i] = parent->children[i - 1];
+  }
+  parent->columns[right_index_in_parent] = node_max(left);
+  parent->children[right_index_in_parent + 1] = right;
+  parent->size++;
+  return 1;
+}
+
+//将column添加为root的第index个数据
+//（外部调用时保证）当前结点为根结点且是满的 root->parent == NULL && root->size == 2 * btree->degree - 1
+//新建一个根节点
+static int split_root_and_add_node_to_index(BTree *btree, BNode *root, Column *column, int index)
+{
+  printf("  创建一个父结点\n");
+  BNode *left = root;
+  BNode *parent = new_node(btree);
+  if (!parent)
+    return 0;
+  parent->size = 1;
+  parent->children[0] = left;
+  parent->columns[0] = node_max(left);
+  parent->leaf = 0;
+
+  left->parent = parent;
+
+  btree->root = parent;
+  btree->size++;
+  //以上执行完，当前结点就有父结点了，按有父结点的情况进行处理
+  return split_leaf_and_add_node_to_index(btree, root, column, index);
+  // if (root->leaf)
+  // else
+  //   return split_middle_and_add_node_to_index(btree, root, column, root->children[index], index);
+}
+
+//（外部调用时保证）当前结点是满的叶子 root->leaf && root->size == 2 * btree->degree - 1
+//将column添加为root的第index个数据
+//然后分裂当前结点
+//分裂完后，如果父结点也满了，继续分裂下去
+//直到当前结点为根结点，此时新建一个根节点，结束分裂的递归
+static int split_and_add_node_to_index(BTree *btree, BNode *root, Column *column, int index)
+{
+  if (root->parent == NULL)
+    return split_root_and_add_node_to_index(btree, root, column, index);
+  return split_leaf_and_add_node_to_index(btree, root, column, index);
+}
+
+//（外部调用时保证）将数据添加到叶子
+//将column添加为root的第index个数据
+//可能需要处理分裂的情况
+static int add_node_to_leaf(BTree *btree, BNode *root, Column *column, int index)
+{
+  int i;
+  if (index < root->size && column_is_equal(root->columns[index], column))
+  {
+    printf("已经存在该数据了，直接覆盖数据内容而不是另外分配空间\n");
+    //已经存在该数据了，直接覆盖数据内容而不是另外分配空间
+    strcpy(root->columns[index]->title, column->title);
+    return 1;
+  }
+  //这是新数据
+  //root结点没有该数据，需要分配空间
+  printf("新数据，需要分配空间\n");
+  if (root->size == 2 * btree->degree - 1)
+  {
+    printf("叶子满了\n");
+    //需要递归分裂
+    print_node_data(root->parent);
+    printf("\n");
+    return split_and_add_node_to_index(btree, root, column, index);
+  }
+  else
+  {
+    printf("叶子没满\n");
+    //将 index 右边的结点往右挪一位
+    for (i = root->size; i > index; --i)
+    {
+      root->columns[i] = root->columns[i - 1];
+    }
+    //保存到 index
+    save_data_to_node(root, index, column);
+    btree->size++;
+    if (index == root->size - 1 && root->parent != NULL)
+    {
+      printf("插入后是最大的，需要递归修改父结点\n");
+      return replace_max_of_intrenal_node(btree, root->parent, root->columns[index - 1], column);
     }
     return 1;
   }
@@ -468,66 +834,22 @@ static int add_node(BTree *btree, BNode *root, Column *column)
     printf("树为空\n");
     return 0;
   }
-  int i;
-  // printf("树不为空 ");
-  // print_node_data(root);
-  // printf("\n");
+  printf("树不为空 ");
+  print_node_data(root);
+  printf("\n");
   //树不空时，先搜索到叶子，如果叶子满了，再递归分裂，直到一个非满的子树，插入到那个子树
   //二分法搜索最佳插入点
   int index = binary_search(root->columns, root->size, column);
-  // printf("二分法搜索最佳插入点, index=%d\n", index);
+  printf("二分法搜索最佳插入点, index=%d\n", index);
   if (root->leaf)
   {
-    // printf("结点是叶子\n");
+    printf("结点是叶子\n");
     //root结点是叶子
-    if (index < root->size && column_is_equal(root->columns[index], column))
-    {
-      printf("已经存在该数据了，直接覆盖数据内容而不是另外分配空间\n");
-      //已经存在该数据了，直接覆盖数据内容而不是另外分配空间
-      strcpy(root->columns[index]->title, column->title);
-      return 1;
-    }
-    //这是新数据
-    //root结点没有该数据，需要分配空间
-    // printf("结点没有该数据，需要分配空间\n");
-    if (root->size == 2 * btree->degree - 1)
-    {
-      // printf("叶子满了\n");
-      //需要递归分裂
-      // print_node_data(root->parent);
-      // printf("\n");
-      // btree_traverse(btree, print_node);
-      BNode *parent = split_full_node(btree, root, index);
-      if (parent == NULL)
-      {
-        //分裂失败
-        printf("分裂失败\n");
-        return 0;
-      }
-      return add_node(btree, btree->root, column);
-    }
-    else
-    {
-      // printf("叶子没满\n");
-      //将 index 右边的结点往右挪一位
-      for (i = root->size; i > index; --i)
-      {
-        root->columns[i] = root->columns[i - 1];
-      }
-      //保存到 index
-      // printf("保存到 %d 到 index:%d\n", column->id, index);
-      save_data_to_node(root, index, column);
-      if (index == root->size - 1 && root->parent != NULL)
-      {
-        // printf("插入后是最大的，需要递归修改父结点\n");
-        return replace_max_of_intrenal_node(btree, root->parent, root->columns[index - 1], column);
-      }
-      return 1;
-    }
+    return add_node_to_leaf(btree, root, column, index);
   }
   else
   {
-    // printf("结点不是叶子\n");
+    printf("结点不是叶子\n");
     if (index == root->size)
     {
       index--;
@@ -557,7 +879,7 @@ int btree_add(BTree *btree, Column *column)
     btree->size = 1;
     return 1;
   }
-  // printf("保存到结点\n");
+  printf("保存到结点\n");
   return add_node(btree, btree->root, column);
 }
 
@@ -569,9 +891,9 @@ static int clear_node(BNode *root)
   int i;
   if (root->leaf)
   {
-    // printf("---释放叶子---");
-    // print_node_data(root);
-    // printf("\n");
+    printf("---释放叶子---");
+    print_node_data(root);
+    printf("\n");
     for (i = 0; i < root->size; ++i)
     {
       free(root->columns[i]);
@@ -579,9 +901,9 @@ static int clear_node(BNode *root)
     free(root->columns);
     return 1;
   }
-  // printf("//释放中间结点---");
-  // print_node_data(root);
-  // printf("\n");
+  printf("//释放中间结点---");
+  print_node_data(root);
+  printf("\n");
 
   for (i = 0; i < root->size; ++i)
   {
@@ -589,7 +911,7 @@ static int clear_node(BNode *root)
   }
   free(root->columns);
   free(root);
-  // printf("\\\\释放中间结点结束---\n");
+  printf("\\\\释放中间结点结束---\n");
   return 1;
 }
 

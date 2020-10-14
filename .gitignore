@@ -1,0 +1,5 @@
+*.out
+*.exe
+test.c
+*_dict.txt
+*_string.txt
