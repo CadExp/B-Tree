@@ -70,11 +70,11 @@ void print_node(BNode *node)
     return;
   }
   print_node_data(node);
-  printf(", size: %d", node->size);
-  printf(", parent:");
-  print_node_data(node->parent);
-  printf(", next:");
-  print_node_data(node->next);
+  // printf(", size: %d", node->size);
+  // printf(", parent:");
+  // print_node_data(node->parent);
+  // printf(", next:");
+  // print_node_data(node->next);
   printf("\n");
 }
 
@@ -98,6 +98,28 @@ int btree_node_count(BTree *btree)
   if (btree == NULL)
     return 0;
   return node_count(btree->root);
+}
+
+static int leaf_count(BNode *node)
+{
+  if (node == NULL || node->size == 0)
+    return 0;
+  if (node->leaf)
+    return node->size;
+  int i = 0;
+  int count = 0;
+  for (i = 0; i < node->size; i++)
+  {
+    count += leaf_count(node->children[i]);
+  }
+  return count;
+}
+
+int btree_leaf_count(BTree *btree)
+{
+  if (btree == NULL)
+    return 0;
+  return leaf_count(btree->root);
 }
 // 顺序查找结点关键字
 // 每个结点最多关键字为2t-1，时间复杂度为O(2t-1)，即O(t)
@@ -333,7 +355,7 @@ void btree_traverse(BTree *btree, void (*traverse)(BNode *))
 }
 static int debug()
 {
-  return 1;
+  return 0;
 }
 //替换中间结点的最大值 last_column 为 column
 static int replace_max_of_intrenal_node(BTree *btree, BNode *root, Column *last_column, Column *column)
@@ -786,7 +808,15 @@ static int split_root_and_add_node_to_index(BTree *btree, BNode *root, Column *c
     return 0;
   parent->size = 1;
   parent->children[0] = left;
-  parent->columns[0] = node_max(left);
+  Column *left_max = node_max(left);
+  if (column_a_greater_or_equal_b(left_max, column))
+  {
+    parent->columns[0] = left_max;
+  }
+  else
+  {
+    parent->columns[0] = column;
+  }
   parent->leaf = 0;
 
   left->parent = parent;
@@ -837,7 +867,10 @@ static int add_node_to_leaf(BTree *btree, BNode *root, Column *column, int index
   }
   //这是新数据
   //root结点没有该数据，需要分配空间
-  printf("新数据，需要分配空间\n");
+  if (debug())
+  {
+    printf("新数据，需要分配空间\n");
+  }
   if (root->size == 2 * btree->degree - 1)
   {
     if (debug())
@@ -894,8 +927,8 @@ static int add_node(BTree *btree, BNode *root, Column *column)
   if (debug())
   {
     printf("树不为空 ");
+    print_node(root);
   }
-  print_node(root);
   //树不空时，先搜索到叶子，如果叶子满了，再递归分裂，直到一个非满的子树，插入到那个子树
   //二分法搜索最佳插入点
   int index = binary_search(root->columns, root->size, column);
