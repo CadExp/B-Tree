@@ -5,7 +5,7 @@
 #include "btree.h"
 
 #define N 1800               // 哈希表大小
-#define SPLIT 10            // 哈希成 7 个小的对应文件
+#define SPLIT 10             // 哈希成 7 个小的对应文件
 #define MAX_STRING_LENGTH 45 // 最大字符串长度
 #define FILE_LINE_BUFFER 128 // 读取一行的buffer
 
@@ -89,20 +89,18 @@ static int search(FILE *dictFile, FILE *wordFile, FILE *resultFile, int m)
   int k = (m + 1) / 2;
   printf("building B+ tree, m=%d, k=%d\n", m, k);
   BTree *btree = btree_init(k);
-  int counter = 0;
   while (fgets(line, FILE_LINE_BUFFER, dictFile) != NULL)
   {
     char *find = strchr(line, '\n'); //查找换行符，如果find不为空指针
-    Column c;
-    c.id = 1;
-    strcpy(c.title, line);
-    btree_add(btree, &c);
-    counter++;
-    if(counter >= 10)break;
+    if (find)
+      *find = '\0';
+    if (strlen(line) == 0)
+      continue;
+    Column *c = (Column *)malloc(sizeof(Column));
+    c->id = 0;
+    strcpy(c->title, line);
+    btree_add(btree, c);
   }
-  printf("\n---btree_traverse begin---%d\n\n", btree->size);
-  btree_traverse(btree, print_node);
-  printf("---btree_traverse end---\n");
 
   //搜索
   int hit = 0;
@@ -116,12 +114,10 @@ static int search(FILE *dictFile, FILE *wordFile, FILE *resultFile, int m)
       printf("skip an empty line\n");
       continue;
     }
-
-    printf("%s\n", line);
-    Column *c = (Column *)malloc(sizeof(Column));
-    c->id = 0; //hash(line);
-    strcpy(c->title, line);
-    Column *result = btree_get_by_value(btree, c);
+    Column c;
+    c.id = 1;
+    strcpy(c.title, line);
+    Column *result = btree_get_by_value(btree, &c);
     if (result != NULL)
     {
       fprintf(resultFile, "%s\n", line);
@@ -251,54 +247,7 @@ int main(int argc, char *argv[])
     FILE *wordFile = wordOutput[i];
     rewind(dictFile);
     rewind(wordFile);
-    //构建哈希字典
-  int k = (m + 1) / 2;
-  printf("building B+ tree, m=%d, k=%d\n", m, k);
-  BTree *btree = btree_init(k);
-  int counter = 0;
-  while (fgets(line, FILE_LINE_BUFFER, dictFile) != NULL)
-  {
-    char *find = strchr(line, '\n'); //查找换行符，如果find不为空指针
-    Column c;
-    c.id = 1;
-    strcpy(c.title, line);
-    btree_add(btree, &c);
-    counter++;
-    if(counter >= 10)break;
-  }
-  printf("\n---btree_traverse begin---%d\n\n", btree->size);
-  btree_traverse(btree, print_node);
-  printf("---btree_traverse end---\n");
-
-  //搜索
-  int hit = 0;
-  while (fgets(line, FILE_LINE_BUFFER, wordFile) != NULL)
-  {
-    char *find = strchr(line, '\n'); //查找换行符，如果find不为空指针
-    if (find)
-      *find = '\0';
-    if (line[0] == '\n' || line[0] == '\0')
-    {
-      printf("skip an empty line\n");
-      continue;
-    }
-
-    printf("%s\n", line);
-    Column *c = (Column *)malloc(sizeof(Column));
-    c->id = 0; //hash(line);
-    strcpy(c->title, line);
-    Column *result = btree_get_by_value(btree, c);
-    if (result != NULL)
-    {
-      fprintf(resultFile, "%s\n", line);
-      hit++;
-    }
-  }
-  fclose(wordFile);
-  fclose(dictFile);
-  printf("hit %d\n", hit);
-  btree_clear(btree);
-    total_hits += hit;//search(dictFile, wordFile, resultFile, m);
+    total_hits += search(dictFile, wordFile, resultFile, m);
     remove(key2string(i, "_dict.txt", filenameBuffer));
     remove(key2string(i, "_string.txt", filenameBuffer));
   }

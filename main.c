@@ -35,7 +35,7 @@ static void btree(void)
         // }
     }
     printf("\n--------------\n");
-    printf("B+树(size:%d, nodes:%d leaf=%d) count=%d\n", btree->size, btree_node_count(btree), btree_leaf_count(btree), count);
+    printf("B+树(nodes:%d leaf=%d) count=%d", btree_node_count(btree), btree_leaf_count(btree), count);
     printf("\n--------------\n");
     FILE *resultFile = fopen("my_result.txt", "w");
     int hit = 0;
@@ -55,7 +55,7 @@ static void btree(void)
             hit++;
         }
     }
-    printf("hits%d\n", hit);
+    printf("hits %d\n", hit);
     printf("\n------------------\n");
     // btree_traverse(btree, print_node);
     printf("\n------------------\n");
