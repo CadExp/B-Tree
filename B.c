@@ -8,30 +8,30 @@
 //0不等 1相等
 static int column_is_equal(const Column *a, const Column *b)
 {
-  // if (strcmp(a->title, b->title) == 0)
-  //   return 1;
-  // return 0;
+  if (strcmp(a->title, b->title) == 0)
+    return 1;
+  return 0;
   //TODO
-  return a->id == b->id;
+  // return a->id == b->id;
 }
 //a>b则1，否则0
 static int column_a_greater_than_b(const Column *a, const Column *b)
 {
-  // if (strcmp(a->title, b->title) > 0)
-  //   return 1;
-  // return 0;
+  if (strcmp(a->title, b->title) > 0)
+    return 1;
+  return 0;
   //TODO
-  return a->id > b->id;
+  // return a->id > b->id;
 }
 //a>=b则1，否则0
 static int column_a_greater_or_equal_b(const Column *a, const Column *b)
 {
-  // int r = strcmp(a->title, b->title);
-  // if (r >= 0)
-  //   return 1;
-  // return 0;
+  int r = strcmp(a->title, b->title);
+  if (r >= 0)
+    return 1;
+  return 0;
   //TODO
-  return a->id >= b->id;
+  // return a->id >= b->id;
 }
 
 void print_node_data(BNode *node)
@@ -860,7 +860,11 @@ static int add_node_to_leaf(BTree *btree, BNode *root, Column *column, int index
   int i;
   if (index < root->size && column_is_equal(root->columns[index], column))
   {
-    printf("已经存在该数据了，直接覆盖数据内容而不是另外分配空间\n");
+    if (debug())
+    {
+      printf("已经存在该数据了，直接覆盖数据内容而不是另外分配空间\n");
+      printf("%s == %s\n", root->columns[index]->title, column->title);
+    }
     //已经存在该数据了，直接覆盖数据内容而不是另外分配空间
     strcpy(root->columns[index]->title, column->title);
     return 2;
