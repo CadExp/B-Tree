@@ -18,19 +18,21 @@ static void btree(void)
         if (strlen(line) == 0)
             continue;
         Column *c = (Column *)malloc(sizeof(Column));
-        c->id = rand() % 100;
+        c->id = rand() % 20000;
         strcpy(c->title, line);
         printf("---开始保存(size:%d) %d: %d---\n", btree->size, count, c->id);
-        btree_add(btree, c);
-        count++;
+        if (btree_add(btree, c) != 2)
+        {
+            count++;
+        }
         printf("---已保存(size:%d) %d: %d -> %s\n", btree->size, count, c->id, line);
         printf("B+树(size:%d, nodes:%d)\n", btree->size, btree_node_count(btree));
         btree_traverse(btree, print_node);
         printf("---保存完毕---\n\n");
-        if (count >= 40)
-        {
-            break;
-        }
+        // if (count >= 150)
+        // {
+        //     break;
+        // }
     }
     printf("\n--------------\n");
     // FILE *resultFile = fopen("my_result.txt", "w");
