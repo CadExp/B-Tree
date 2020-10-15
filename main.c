@@ -9,22 +9,28 @@ static void btree(void)
     BTree *btree = btree_init(2);
     FILE *f = fopen("string.txt", "r");
     char line[128];
-    int count=0;
+    int count = 0;
     while (fgets(line, 128, f) != NULL)
     {
         char *find = strchr(line, '\n'); //查找换行符，如果find不为空指针
         if (find)
             *find = '\0';
-        if(strlen(line)==0)continue;
-        Column c;
-        c.id = rand()%100;
-        strcpy(c.title, line);
-        printf("---开始保存%d---\n", c.id);
-        btree_add(btree, &c);
-        printf("--- %d,%d -> %s\n", c.id, btree->size, line);
+        if (strlen(line) == 0)
+            continue;
+        Column *c = (Column *)malloc(sizeof(Column));
+        c->id = rand() % 100;
+        strcpy(c->title, line);
+        printf("---开始保存(size:%d) %d: %d---\n", btree->size, count, c->id);
+        btree_add(btree, c);
+        count++;
+        printf("---已保存(size:%d) %d: %d -> %s\n", btree->size, count, c->id, line);
+        printf("B+树(size:%d, nodes:%d)\n", btree->size, btree_node_count(btree));
         btree_traverse(btree, print_node);
         printf("---保存完毕---\n\n");
-        count++;
+        if (count >= 40)
+        {
+            break;
+        }
     }
     printf("\n--------------\n");
     // FILE *resultFile = fopen("my_result.txt", "w");
@@ -47,7 +53,8 @@ static void btree(void)
     // }
     // printf("hits%d\n", hit);
     printf("\n------------------\n");
-    // btree_traverse(btree, print_node);
+    printf("B+树(size:%d, nodes:%d)\n", btree->size, btree_node_count(btree));
+    btree_traverse(btree, print_node);
     printf("\n------------------\n");
     printf("btree_clear\n");
     btree_clear(btree);

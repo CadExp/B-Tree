@@ -41,6 +41,7 @@ extern void btree_traverse(BTree *btree, void(*traverse)(BNode*));//遍历
 extern int btree_clear(BTree *btree);//释放空间
 extern void print_node_data(BNode *node);
 extern void print_node(BNode *node);
+extern int btree_node_count(BTree *btree);
 // 最小度数t>=2，度数就是子树个数
 // 根结点的关键字数最小为1
 // 非叶非根结点的度数：t <= T <= 2t-1
