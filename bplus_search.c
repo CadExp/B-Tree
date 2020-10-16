@@ -83,7 +83,7 @@ unsigned int hash(char *str)
  * resultFile: 结果输出
  * m : m阶B+树
  */
-static int search(FILE *dictFile, FILE *wordFile, FILE *resultFile, int m)
+int search(FILE *dictFile, FILE *wordFile, FILE *resultFile, int m)
 {
   //构建哈希字典
   int k = (m + 1) / 2;
@@ -99,9 +99,10 @@ static int search(FILE *dictFile, FILE *wordFile, FILE *resultFile, int m)
     Column *c = (Column *)malloc(sizeof(Column));
     c->id = 0;
     strcpy(c->title, line);
+    // printf("%s\n", line);
     btree_add(btree, c);
   }
-
+  printf("B+树(nodes:%d leaf=%d)\n", btree_node_count(btree), btree_leaf_count(btree));
   //搜索
   int hit = 0;
   while (fgets(line, FILE_LINE_BUFFER, wordFile) != NULL)
@@ -247,7 +248,51 @@ int main(int argc, char *argv[])
     FILE *wordFile = wordOutput[i];
     rewind(dictFile);
     rewind(wordFile);
-    total_hits += search(dictFile, wordFile, resultFile, m);
+    int k = (m + 1) / 2;
+  printf("building B+ tree, m=%d, k=%d\n", m, k);
+  BTree *btree = btree_init(k);
+  while (fgets(line, FILE_LINE_BUFFER, dictFile) != NULL)
+  {
+    char *find = strchr(line, '\n'); //查找换行符，如果find不为空指针
+    if (find)
+      *find = '\0';
+    if (strlen(line) == 0)
+      continue;
+    Column *c = (Column *)malloc(sizeof(Column));
+    c->id = 0;
+    strcpy(c->title, line);
+    // printf("%s\n", line);
+    btree_add(btree, c);
+  }
+  printf("B+树(nodes:%d leaf=%d)\n", btree_node_count(btree), btree_leaf_count(btree));
+  //搜索
+  int hit = 0;
+  while (fgets(line, FILE_LINE_BUFFER, wordFile) != NULL)
+  {
+    char *find = strchr(line, '\n'); //查找换行符，如果find不为空指针
+    if (find)
+      *find = '\0';
+    if (line[0] == '\n' || line[0] == '\0')
+    {
+      printf("skip an empty line\n");
+      continue;
+    }
+    Column c;
+    c.id = 1;
+    strcpy(c.title, line);
+    Column *result = btree_get_by_value(btree, &c);
+    if (result != NULL)
+    {
+      fprintf(resultFile, "%s\n", line);
+      hit++;
+    }
+  }
+  fclose(wordFile);
+  fclose(dictFile);
+  printf("hit %d\n", hit);
+  // break;
+  btree_clear(btree);
+    total_hits += hit;//search(dictFile, wordFile, resultFile, m);
     remove(key2string(i, "_dict.txt", filenameBuffer));
     remove(key2string(i, "_string.txt", filenameBuffer));
   }
@@ -256,6 +301,6 @@ int main(int argc, char *argv[])
   free(line);
   printf("runtime: %f s, string match: %d\n", (double)((double)(clock() - start_t) / (double)(CLOCKS_PER_SEC)), total_hits);
   printf("--- total using time : %f s\n", (double)((double)(clock() - start_t) / (double)(CLOCKS_PER_SEC)));
-  sleep(3);
+  // sleep(3);
   return 0;
 }
