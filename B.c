@@ -5,6 +5,15 @@
 
 // ! 以下方法 return 0失败 1成功
 
+static int debug_ = 0;
+void setDebug(int d)
+{
+  debug_ = d;
+}
+int debug()
+{
+  return debug_;
+}
 //0不等 1相等
 int column_is_equal(const Column *a, const Column *b)
 {
@@ -70,11 +79,15 @@ void print_node(BNode *node)
     return;
   }
   print_node_data(node);
-  // printf(", size: %d", node->size);
-  // printf(", parent:");
-  // print_node_data(node->parent);
-  // printf(", next:");
-  // print_node_data(node->next);
+  if (node->leaf)
+  {
+    printf(" (leaf)");
+  }
+  printf(", size: %d", node->size);
+  printf(", parent:");
+  print_node_data(node->parent);
+  printf(", next:");
+  print_node_data(node->next);
   printf("\n");
 }
 
@@ -159,7 +172,7 @@ int binary_search(Column *array[], const int len, const Column *value)
 //初始化
 BTree *btree_init(unsigned int degree)
 {
-  BTree *btree= (BTree *)malloc(sizeof(BTree));
+  BTree *btree = (BTree *)malloc(sizeof(BTree));
   if (!btree)
   {
     perror("init b tree error.");
@@ -187,7 +200,7 @@ BNode *new_node(BTree *btree)
   if (!node)
     return NULL;
   node->columns = (Column **)malloc(sizeof(Column *) * (2 * btree->degree - 1)); //2t-1个关键字
-  node->children = (BNode **)malloc(sizeof(BNode *) * (2 * btree->degree-1));      // 2t棵子树
+  node->children = (BNode **)malloc(sizeof(BNode *) * (2 * btree->degree - 1));  // 2t棵子树
   node->size = 0;
   node->leaf = 0;
   node->next = NULL;
@@ -202,6 +215,12 @@ BNode *new_node(BTree *btree)
     free(node->columns);
     free(node);
     return NULL;
+  }
+  int i = 0;
+  for (i = 0; i < 2 * btree->degree - 1; i++)
+  {
+    node->columns[i] = NULL;
+    node->children[i] = NULL;
   }
   return node;
 }
@@ -233,13 +252,19 @@ int replace_data_at_node(BNode *node, int index, Column *column)
 // index 从 0 开始
 int save_data_to_node(BNode *node, int index, Column *column)
 {
-  // printf("保存到 %d 到 index:%d\n", column->id, index);
-  // printf("保存前--\n");
-  // print_node(node);
+  if (debug())
+  {
+    printf("保存到 %d 到 index:%d\n", column->id, index);
+    printf("保存前--\n");
+    print_node(node);
+  }
   replace_data_at_node(node, index, column);
   node->size++;
-  // printf("保存后--\n");
-  // print_node(node);
+  if (debug())
+  {
+    printf("保存后--\n");
+    print_node(node);
+  }
   return 1;
 }
 
@@ -275,6 +300,8 @@ Column *btree_min(BTree *btree)
 Column *btree_get(BNode *root, Column *c)
 {
   int index = binary_search(root->columns, root->size, c);
+  if (index >= root->size)
+    index--;
   if (index < root->size && column_is_equal(root->columns[index], c) == 1)
     return root->columns[index];
   else if (root->leaf)
@@ -320,7 +347,7 @@ void traverse_tree(BNode *root, int depth, char *prefix, void (*traverse)(BNode 
   printf("%s", prefix);
   traverse(root);
   //2.依次遍历子树
-  char *prefix_plus = malloc(sizeof(char) * (depth * 3+1));
+  char *prefix_plus = malloc(sizeof(char) * (depth * 3 + 1));
   int i;
   for (i = 0; i < depth * 3; i++)
   {
@@ -352,10 +379,7 @@ void btree_traverse(BTree *btree, void (*traverse)(BNode *))
     return;
   traverse_tree(btree->root, 0, "", traverse);
 }
-int debug()
-{
-  return 0;
-}
+
 //替换中间结点的最大值 last_column 为 column
 int replace_max_of_intrenal_node(BTree *btree, BNode *root, Column *last_column, Column *column)
 {
@@ -409,9 +433,7 @@ BNode *generateRight(BTree *btree, BNode *left, Column *column, int index)
   {
     //column将位于右子树
     if (debug())
-    {
       printf("  %d 将位于右子树，index=%d\n", column->id, index - middle_index);
-    }
     //1. 复制出右子树
     for (i = middle_index; i < left->size; i++)
     {
@@ -824,9 +846,6 @@ int split_root_and_add_node_to_index(BTree *btree, BNode *root, Column *column, 
   btree->size++;
   //以上执行完，当前结点就有父结点了，按有父结点的情况进行处理
   return split_leaf_and_add_node_to_index(btree, root, column, index);
-  // if (root->leaf)
-  // else
-  //   return split_middle_and_add_node_to_index(btree, root, column, root->children[index], index);
 }
 
 //（外部调用时保证）当前结点是满的叶子 root->leaf && root->size == 2 * btree->degree - 1
@@ -880,7 +899,7 @@ int add_node_to_leaf(BTree *btree, BNode *root, Column *column, int index)
     {
       printf("叶子满了\n");
     }
-    if (index >= root->size - 1 && root->parent != NULL)
+    if (index >= root->size && root->parent != NULL)
     {
       if (debug())
       {
@@ -969,13 +988,16 @@ int btree_add(BTree *btree, Column *column)
     return 0;
   if (!btree->root)
   {
-    printf("树为空，将插入的结点当作根结点\n");
+    if (debug())
+      printf("树为空，将插入的结点当作根结点\n");
     BNode *root = new_node(btree);
     if (!root)
       return 0;
-    printf("保存到结点\n");
+    if (debug())
+      printf("保存到结点\n");
     save_data_to_node(root, 0, column);
-    printf("保存完成\n");
+    if (debug())
+      printf("保存完成\n");
     root->leaf = 1;
 
     btree->root = root;

@@ -28,18 +28,19 @@ int _btree(BTree *btree)
         // printf("---开始保存(size:%d) %d: %d---\n", btree->size, count, c->id);
         if (btree_add(btree, c) != 2)
             count++;
-        // printf("---已保存(size:%d) %d: %d -> %s\n", btree->size, count, c->id, line);
-        // printf("B+树(size:%d, nodes:%d)\n", btree->size, btree_node_count(btree));
-        // btree_traverse(btree, print_node);
-        // printf("---保存完毕---\n\n");
-        if (count >= 100)
-            break;
+        // if (count <= 100)
+        // {
+        //     printf("---已保存(size:%d) %d: %d -> %s\n", btree->size, count, c->id, line);
+        //     printf("B+树(size:%d, nodes:%d)\n", btree->size, btree_node_count(btree));
+        //     btree_traverse(btree, print_node);
+        //     printf("---保存完毕---\n\n");
+        // }
     }
     fclose(f);
     printf("\n--------------\n");
-    printf("B+树(nodes:%d leaf=%d) count=%d", btree_node_count(btree), btree_leaf_count(btree), count);
+    // printf("B+树(nodes:%d leaf=%d) count=%d", btree_node_count(btree), btree_leaf_count(btree), count);
     printf("\n--------------\n");
-    btree_traverse(btree, print_node);
+    // btree_traverse(btree, print_node);
     printf("\n------------------\n");
     FILE *resultFile = fopen("my_result.txt", "w");
     int hit = 0;
@@ -49,10 +50,12 @@ int _btree(BTree *btree)
         char *find = strchr(line, '\n'); //查找换行符，如果find不为空指针
         if (find)
             *find = '\0';
+        if (strlen(line) == 0)
+            continue;
         Column c;
         c.id = 1;
         strcpy(c.title, line);
-        printf("%s\n", line);
+        // printf("%s\n", line);
         if (btree_get_by_value(btree, &c) != NULL)
         {
             fprintf(resultFile, "%s\n", line);
@@ -80,7 +83,7 @@ int _btree1(BTree *btree)
         Column *c = (Column *)malloc(sizeof(Column));
         c->id = rand() % 20000;
         strcpy(c->title, line);
-        printf("---开始保存(size:%d) %d: %d---\n", btree->size, count, c->id);
+        // printf("---开始保存(size:%d) %d: %d---\n", btree->size, count, c->id);
         if (btree_add(btree, c) != 2)
             count++;
     }
@@ -113,7 +116,7 @@ int _btree2(BTree *btree)
         Column *c = (Column *)malloc(sizeof(Column));
         c->id = rand() % 20000;
         strcpy(c->title, line);
-        printf("---开始保存(size:%d) %d: %d---\n", btree->size, count, c->id);
+        // printf("---开始保存(size:%d) %d: %d---\n", btree->size, count, c->id);
         if (btree_add(btree, c) != 2)
             count++;
     }
@@ -148,6 +151,7 @@ int main()
     btree2->head = NULL;
     btree2->size = 0;
     btree2->degree = 2;
+// setDebug(1);
     _btree(btree);
     return 0;
 }

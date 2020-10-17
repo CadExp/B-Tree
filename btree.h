@@ -43,6 +43,7 @@ extern void print_node_data(BNode *node);
 extern void print_node(BNode *node);
 extern int btree_node_count(BTree *btree);
 extern int btree_leaf_count(BTree *btree);
+extern void setDebug(int d);
 // 最小度数t>=2，度数就是子树个数
 // 根结点的关键字数最小为1
 // 非叶非根结点的度数：t <= T <= 2t-1
